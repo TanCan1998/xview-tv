@@ -64,3 +64,7 @@ Debug APK：`app/build/outputs/apk/debug/app-debug.apk`，不是发布签名包�
 [路线图](docs/development/roadmap.md) · [兼容矩阵](docs/compatibility/android-tv.md) · [隐私](PRIVACY.md) · [贡献指南](CONTRIBUTING.md)
 
 [GitHub 源码](https://github.com/TanCan1998/xview-tv) · [下载 1.0.0](https://github.com/TanCan1998/xview-tv/releases/tag/v1.0.0)。Apache-2.0，第三方组件许可见[来源记录](licenses/third-party/README.md)。
+
+## 社区链接
+
+[LINUX DO](https://linux.do/)：真诚、友善、团结、专业的技术社区。认可社区的开源交流理念，欢迎佬友交流使用体验与改进建议。
