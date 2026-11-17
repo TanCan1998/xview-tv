@@ -7,7 +7,11 @@
 - Grok响应增加完整JSON/NDJSON/SSE聚合及四项回归，针对只显示首个译文字片段；最终真实接口与卡片布局需复测。
 - 早期临时兼容构建（旧缓存AGP8.9/Kotlin2.1/SDK35）42JUnit零失败、Lint0错误31警告。该结果不覆盖后续多账号与最新修订。用户随后明确只使用GitHub构建，此后不再启动本地Gradle。
 - 真实MiTV API28早期调试包覆盖安装保账号；刷新同行、卡片上下导航不误开设置、菜单显示设置、OK暂停及恢复、左右seek已观察。离线fixture只用于按键验证，无真实视频；真实首页重入78条。SurfaceView期间截图黑屏但Amlogic硬解/进度在运行，最终TextureView尚未验收。菜单关闭焦点恢复曾发现问题，已改叶子焦点记录待复测。
-- 当前源码结构/Node/LAN检查以最新日志为准；GitHub最终构建结果、最终电视验收将另行补充。未更新main或Release。
+- 最终应用提交`136a5e3`由[GitHub Actions](https://github.com/TanCan1998/xview-tv/actions/runs/44036648128)构建签名成功；前次全量运行46JUnit零失败/零错误，最终影响范围运行Lint0错误42警告、124结构检查和4项APK元数据测试通过。APK2935542字节，SHA256 `5532fe01c9d2fbf0101aaed9f19b4253b0df2ac1d110d2a9a9d4e3efc9dac29b`，已覆盖安装MiTV保账号。
+- 动态版本CI从`output-metadata.json`读取versionName/versionCode与APK路径，产物/签名文件名不再硬编码应用版本。双语README新增1920×1080组合预览，素材为自身图标与不可逆脱敏的TV/手机截图。
+- TV最终验收：原账号恢复、账号管理页显示当前账号/添加入口；刷新导航同行、搜索框圆角且与导航同行；卡片→菜单显示设置→菜单关闭回原卡片；列表返回优先当前页导航；OK暂停可见，进度条深底/青框/浅色轨道可区分。32dp外部按钮栏实测占屏幕80px（40dp）。原生播放/快退快进按钮不显示。
+- TextureView在MiTV RenderThread出现`glGenTextures GL_OUT_OF_MEMORY`，已回SurfaceView并缩小隐藏焦点靶为1dp；最终进程存活、当前日志无新增此类崩溃。电视截图仍黑色视频区，进度可见；不能据此宣称视频画面已完整验收。最终长按连续seek、外部倍速完整路径、真实译文和多真实账号切换未全面复测；合成设备测试源码尚未执行。
+- 尚未合并main或更新Release。早期测试记录仅说明过程，以以上最终结果为准。
 
 ## 1.0.0 开源交付（2026-11-17，历史基线）
 
