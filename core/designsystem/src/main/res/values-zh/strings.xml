@@ -76,7 +76,7 @@
     <string name="welcome">你的关注，清晰呈现</string>
     <string name="welcome_subtitle">登录后探索已关注账号的视频</string>
     <string name="welcome_phone">点击右上角设置，在账号与登录中填写完整 Cookie。</string>
-    <string name="welcome_tv">按遥控器上键显示设置，在账号与登录中扫码。</string>
+    <string name="welcome_tv">按遥控器菜单键显示设置，在已保存账号中添加账号并扫码。</string>
     <string name="restoring">正在恢复安全会话…</string>
     <string name="restore_failed">会话读取失败，请在设置重新登录。</string>
     <string name="following">正在关注 / 发现精彩瞬间</string>
@@ -92,7 +92,7 @@
     <string name="load_more">继续加载</string>
     <string name="feed_end">已到本次动态末尾</string>
     <string name="feed_error">媒体暂不可用，请检查网络后重试。</string>
-    <string name="nav_hint">方向键浏览 · 确认查看 · 上键显示设置</string>
+    <string name="nav_hint">方向键浏览 · 确认查看 · 菜单键显示/隐藏设置</string>
     <string name="view_media">查看媒体</string>
     <string name="translated">译</string>
     <string name="video_badge">▶ 视频</string>
@@ -145,4 +145,15 @@
     <string name="player_queue">@%1$s · %2$d/%3$d</string>
     <string name="quality_resolution">%1$sp</string>
     <string name="quality_bitrate">%1$dkbps</string>
+    <string name="play_video">播放</string>
+    <string name="pause_video">暂停</string>
+    <string name="playback_speed">倍速 %1$.2fx</string>
+    <string name="accounts_title">已保存账号</string>
+    <string name="accounts_help">最多安全保存 20 个账号。切换后重新加载媒体流，并清理上一个账号的缓存。</string>
+    <string name="account_add">添加账号</string>
+    <string name="account_current">当前 · %1$s · @%2$s</string>
+    <string name="account_switch">切换到 %1$s · @%2$s</string>
+    <string name="account_remove">移除</string>
+    <string name="account_remove_confirm">从本机移除 @%1$s？其他已保存账号将保留。</string>
+    <string name="account_switched">账号已切换，返回首页后加载该账号内容。</string>
 </resources>

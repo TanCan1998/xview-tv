@@ -1,15 +1,7 @@
 package io.github.tancan1998.xviewtv
 
-import android.content.Context
-import android.security.keystore.KeyGenParameterSpec
-import android.security.keystore.KeyProperties
-import android.util.Base64
 import io.github.tancan1998.xviewtv.core.network.*
 import org.json.JSONObject
-import java.security.KeyStore
-import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
-import javax.crypto.spec.GCMParameterSpec
 
 internal data class WebAccount(val id: String, val username: String, val name: String)
 internal class VerifiedSession(val session: WebSession, val account: WebAccount) {
@@ -48,44 +40,4 @@ internal object WebIdentity {
         catch (_: Exception) { throw WebSessionFailure("未取得匹配的当前账号身份，原账号未改变。") }
     }
     fun verify(config: ProxyConfig, session: WebSession) = VerifiedSession(session, parse(NetworkPolicy.readAuthenticatedHome(config, session)))
-}
-
-/** API23+ AES AndroidKeyStore; fail closed when the key or secure storage is unavailable. */
-internal class SessionVault(context: Context) {
-    private val preferences = context.applicationContext.getSharedPreferences("account_vault", Context.MODE_PRIVATE)
-    private val alias = "xview_account_aes_v1"
-    private fun key(create: Boolean): javax.crypto.SecretKey {
-        val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
-        val old = store.getKey(alias, null) as? javax.crypto.SecretKey
-        if (old != null) return old
-        check(create) { "安全密钥不可用，请重新登录。" }
-        return KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore").apply {
-            init(KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
-                .setBlockModes(KeyProperties.BLOCK_MODE_GCM).setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE).build())
-        }.generateKey()
-    }
-    fun save(candidate: VerifiedSession) {
-        val plain = JSONObject().put("auth_token", candidate.session.authToken).put("ct0", candidate.session.csrf)
-            .put("id", candidate.account.id).put("username", candidate.account.username).put("name", candidate.account.name).toString().toByteArray()
-        try {
-            val cipher = Cipher.getInstance("AES/GCM/NoPadding").apply { init(Cipher.ENCRYPT_MODE, key(true)); updateAAD("xview-account-v1".toByteArray()) }
-            val encrypted = cipher.doFinal(plain)
-            check(preferences.edit().putString("iv", Base64.encodeToString(cipher.iv, Base64.NO_WRAP))
-                .putString("payload", Base64.encodeToString(encrypted, Base64.NO_WRAP)).commit()) { "安全存储写入失败。" }
-        } finally { plain.fill(0) }
-    }
-    fun load(): VerifiedSession? {
-        val payload = preferences.getString("payload", null) ?: return null
-        val iv = preferences.getString("iv", null) ?: error("安全存储不完整。")
-        val cipher = Cipher.getInstance("AES/GCM/NoPadding").apply {
-            init(Cipher.DECRYPT_MODE, key(false), GCMParameterSpec(128, Base64.decode(iv, Base64.NO_WRAP))); updateAAD("xview-account-v1".toByteArray())
-        }
-        val plain = cipher.doFinal(Base64.decode(payload, Base64.NO_WRAP))
-        try {
-            val json = JSONObject(String(plain))
-            val session = WebSession.parse("auth_token=${json.getString("auth_token")}; ct0=${json.getString("ct0")}")
-            return VerifiedSession(session, WebAccount(json.getString("id"), json.getString("username"), json.getString("name")))
-        } finally { plain.fill(0) }
-    }
-    fun clear() { check(preferences.edit().clear().commit()) { "移除本地会话失败。" } }
 }

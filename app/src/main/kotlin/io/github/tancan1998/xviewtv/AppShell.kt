@@ -11,8 +11,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.*
+import androidx.compose.foundation.focusGroup
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -25,8 +25,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private enum class Destination { HOME, LOGIN, PROXY, SETTINGS }
+private enum class Destination { HOME, ACCOUNTS, LOGIN, PROXY, SETTINGS }
 
+@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 internal fun AppShell(home: @Composable (WebAccount?, io.github.tancan1998.xviewtv.core.network.ProxyConfig) -> Unit) {
     val mediaOverlay = remember { mutableStateOf(false) }
@@ -50,40 +51,56 @@ internal fun AppShell(home: @Composable (WebAccount?, io.github.tancan1998.xview
     val scope = rememberCoroutineScope()
     val pageState = rememberSaveableStateHolder()
     val homeFocus = remember { FocusRequester() }
+    val homeRegistry = remember { TvHomeFocusRegistry() }
     val settingsFocus = remember { FocusRequester() }
     val pageFocus = remember { FocusRequester() }
     val go: (Destination) -> Unit = { destination = it; settingsVisible = false; message = "" }
     val back: () -> Unit = {
-        if (destination == Destination.LOGIN || destination == Destination.PROXY) go(Destination.SETTINGS)
+        if (destination == Destination.LOGIN) go(Destination.ACCOUNTS)
+        else if (destination == Destination.ACCOUNTS || destination == Destination.PROXY) go(Destination.SETTINGS)
         else { go(Destination.HOME); settingsVisible = false }
     }
+    val dismissSettings: () -> Unit = { settingsVisible = false }
     LaunchedEffect(destination, settingsVisible) {
         when {
             destination != Destination.HOME -> runCatching { pageFocus.requestFocus() }
             settingsVisible -> runCatching { settingsFocus.requestFocus() }
-            else -> runCatching { homeFocus.requestFocus() }
+            else -> runCatching { if (!homeRegistry.restore()) homeFocus.requestFocus() }
         }
     }
-    BackHandler(enabled = destination != Destination.HOME || settingsVisible) { back() }
+    BackHandler(enabled = destination != Destination.HOME || settingsVisible) {
+        if (destination == Destination.HOME && settingsVisible) dismissSettings() else back()
+    }
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).safeDrawingPadding().onPreviewKeyEvent { event ->
-        if (tv && !mediaOverlay.value && destination == Destination.HOME && event.type == KeyEventType.KeyDown) {
-            when (event.key) {
-                Key.DirectionUp -> { settingsVisible = true; true }
-                Key.DirectionDown -> if (settingsVisible) { settingsVisible = false; true } else false
-                else -> false
+        if (tv && !mediaOverlay.value && destination == Destination.HOME && event.nativeKeyEvent.keyCode == android.view.KeyEvent.KEYCODE_MENU) {
+            if (event.type == KeyEventType.KeyDown && event.nativeKeyEvent.repeatCount == 0) {
+                if (settingsVisible) dismissSettings() else settingsVisible = true
             }
+            true
+        } else if (tv && settingsVisible && !mediaOverlay.value && destination == Destination.HOME &&
+            event.key in listOf(Key.DirectionUp, Key.DirectionDown, Key.DirectionLeft, Key.DirectionRight)) {
+            if (event.type == KeyEventType.KeyDown && event.key == Key.DirectionDown) dismissSettings()
+            true
         } else false
     }) {
         pageState.SaveableStateProvider(destination.name) {
             when (destination) {
-                Destination.HOME -> CompositionLocalProvider(LocalMediaOverlay provides mediaOverlay) {
-                    Box(Modifier.fillMaxSize().focusRequester(homeFocus).focusable()) {
+                Destination.HOME -> CompositionLocalProvider(LocalMediaOverlay provides mediaOverlay,
+                    LocalTvHomeFocusRegistry provides homeRegistry) {
+                    Box(Modifier.fillMaxSize().focusRequester(homeFocus).focusGroup()) {
                         if (restoring) DetailPage(ui(UiR.string.app_title), ui(UiR.string.restoring)) {
                             LoadingIndicator(label = ui(UiR.string.restoring)); MediaSkeleton()
                         } else home(account, proxy)
                     }
                 }
-                Destination.LOGIN -> LoginPage(proxy, pageFocus, account, onAccount = { account = it }, back = back)
+                Destination.ACCOUNTS -> AccountsPage(account, pageFocus, onAccount = {
+                    if (it?.id != account?.id) { homeRegistry.last = null; pageState.removeState(Destination.HOME.name) }
+                    account = it
+                }, add = { go(Destination.LOGIN) }, back = back)
+                Destination.LOGIN -> LoginPage(proxy, pageFocus, account, onAccount = {
+                    if (it?.id != account?.id) { homeRegistry.last = null; pageState.removeState(Destination.HOME.name) }
+                    account = it
+                }, back = back)
                 Destination.PROXY -> ProxyPage(proxy, initialFocus = pageFocus, onSave = { candidate ->
                     scope.launch {
                         val saved = withContext(Dispatchers.IO) { preferences.saveProxy(candidate) }
@@ -92,7 +109,7 @@ internal fun AppShell(home: @Composable (WebAccount?, io.github.tancan1998.xview
                     }
                 }, saveMessage = message)
                 Destination.SETTINGS -> DetailPage(ui(UiR.string.settings), ui(UiR.string.settings_subtitle)) {
-                    XButton(onClick = { go(Destination.LOGIN) }, modifier = Modifier.focusRequester(pageFocus)) { Text(ui(UiR.string.account_link, account?.let { "@${it.username}" } ?: ui(UiR.string.not_signed))) }
+                    XButton(onClick = { go(Destination.ACCOUNTS) }, modifier = Modifier.focusRequester(pageFocus)) { Text(ui(UiR.string.account_link, account?.let { "@${it.username}" } ?: ui(UiR.string.not_signed))) }
                     XButton(onClick = { go(Destination.PROXY) }) { Text(ui(UiR.string.network_link, ui(when (proxy.mode) { io.github.tancan1998.xviewtv.core.network.ProxyMode.DIRECT -> UiR.string.direct; io.github.tancan1998.xviewtv.core.network.ProxyMode.HTTP -> UiR.string.http_proxy; io.github.tancan1998.xviewtv.core.network.ProxyMode.SOCKS5 -> UiR.string.socks_proxy }))) }
                     SettingsSection(ui(UiR.string.language)) {
                         val languages = context.resources.getStringArray(UiR.array.supported_language_tags).toList()

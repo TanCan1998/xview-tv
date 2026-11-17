@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.*
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.*
@@ -25,6 +26,11 @@ fun XButton(
 ) {
     val action by rememberUpdatedState(onClick)
     val interactions = remember { MutableInteractionSource() }
+    val registry = LocalTvHomeFocusRegistry.current
+    val leafFocus = remember { FocusRequester() }
+    val trackedFocus = if (registry != null && isTelevision()) Modifier.focusRequester(leafFocus).onFocusChanged {
+        if (it.isFocused) registry.last = leafFocus
+    } else Modifier
     val touch = if (isTelevision()) Modifier else Modifier.pointerInput(enabled) {
         if (enabled) detectTapGestures(
             onPress = { position ->
@@ -36,7 +42,7 @@ fun XButton(
             onTap = { action() },
         )
     }
-    Button(onClick = onClick, modifier = modifier.then(touch), enabled = enabled,
+    Button(onClick = onClick, modifier = modifier.then(trackedFocus).then(touch), enabled = enabled,
         scale = scale, shape = shape, colors = colors, contentPadding = contentPadding,
         interactionSource = interactions, content = content)
 }

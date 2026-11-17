@@ -9,7 +9,7 @@ import io.github.tancan1998.xviewtv.core.domain.PlaybackBoost
 
 /** Detect only gestures on the video surface; native transport/time-bar children keep their events. */
 @androidx.annotation.OptIn(UnstableApi::class)
-internal class GesturePlayerView(context: Context) : PlayerView(context) {
+internal class GesturePlayerView(context: Context, attrs: android.util.AttributeSet? = null) : PlayerView(context, attrs) {
     var seek: ((Boolean) -> Unit)? = null
     var speed: (() -> Float)? = null
     var changeSpeed: ((Float) -> Unit)? = null

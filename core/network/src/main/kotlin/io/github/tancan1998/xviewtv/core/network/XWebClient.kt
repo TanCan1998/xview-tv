@@ -200,7 +200,7 @@ class XWebClient(config: ProxyConfig, private val session: WebSession, private v
                 if (failure.status !in setOf(404,405)) throw failure
                 "{}"
             }
-            val grok = JSONObject(raw).optJSONObject("result")?.optString("text")
+            val grok = WebTranslationParser.text(raw)
             val translated = if (!grok.isNullOrBlank()) PostTranslation(grok.take(30000), language, "X / Grok") else {
                 val url = "https://x.com/i/api/1.1/strato/column/None/tweetId=${post.id},destinationLanguage=Some($language),translationSource=Some(X),feature=None,timeout=None,onlyCached=None/translation/service/translateTweet"
                 val data = JSONObject(text(authenticated(url).build(), 128 * 1024))

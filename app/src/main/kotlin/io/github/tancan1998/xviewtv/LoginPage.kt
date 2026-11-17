@@ -169,7 +169,7 @@ internal fun LoginPage(config: ProxyConfig, initialFocus: FocusRequester, accoun
                 scope.launch {
                     try {
                         val result = withContext(Dispatchers.IO) { vault.load()?.let { WebIdentity.verify(config, it.session) } }
-                        checkNotNull(result); onAccount(result.account); message = ui(UiR.string.session_ok)
+                        checkNotNull(result); withContext(Dispatchers.IO) { vault.save(result) }; onAccount(result.account); message = ui(UiR.string.session_ok)
                     } catch (failure: WebSessionFailure) { message = ui.failure(failure.reason) }
                     catch (_: Exception) { message = ui(UiR.string.session_failed) }
                     finally { busy = false }
@@ -182,7 +182,7 @@ internal fun LoginPage(config: ProxyConfig, initialFocus: FocusRequester, accoun
             XButton(onClick = {
                 busy = true
                 scope.launch {
-                    try { withContext(Dispatchers.IO) { vault.clear() }; onAccount(null); candidate = null; cookie = ""; removing = false; message = ui(UiR.string.removed) }
+                    try { val active = withContext(Dispatchers.IO) { vault.clear(); vault.load()?.account }; onAccount(active); candidate = null; cookie = ""; removing = false; message = ui(UiR.string.removed) }
                     catch (_: Exception) { message = ui(UiR.string.remove_failed) }
                     finally { busy = false }
                 }

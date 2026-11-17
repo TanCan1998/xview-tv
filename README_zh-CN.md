@@ -9,7 +9,7 @@
 
 支持 Android 手机、平板与 Android TV / Google TV 的媒体优先 X 客户端，基于 Kotlin 与 Compose for TV。[产品设计](docs/design/xview-tv.md)描述现行功能与媒体规划。
 
-当前只构建一个应用，包名 `io.github.tancan1998.xviewtv`，不提供 Demo 版本。手机首页常驻设置入口，电视按遥控器上键出现唯一的“设置”按钮；登录与代理位于设置内，返回按“子页 → 设置 → 首页”处理。
+当前只构建一个应用，包名 `io.github.tancan1998.xviewtv`，不提供 Demo 版本。手机首页常驻设置入口，电视按遥控器菜单键显示/隐藏唯一的“设置”按钮；登录与代理位于设置内，返回按“子页 → 设置 → 首页”处理。
 
 已实现：
 
@@ -30,7 +30,7 @@
 
 电视扫码时手机与电视必须处于同一局域网。手机直接登录无需配对端口。无需公网 HTTPS、中继或伴随 App；电视配对端口仅在配对时开放，3 分钟过期，离开登录页或切后台即关闭。浏览器若报 `ERR_LOCAL_NETWORK_PERMISSION_MISSING`，需在手机浏览器应用权限中手动允许本地网络访问，再重新生成二维码扫码。HTTP 页面与应用层密文的信任边界见[登录决策](docs/adr/006-qr-cookie-login.md)。
 
-账号验证使用 `https://x.com/home` 当前网页会话数据；媒体和翻译仅使用X同源网页接口，不使用 Android 私有接口或付费 API。多账号尚未实现；视频库接口已用本机保存会话实测，页面测试范围以验证记录为准。手机与 TV 的本次安装验收见[验证记录](docs/development/verification.md)。
+账号验证使用 `https://x.com/home` 当前网页会话数据；媒体和翻译仅使用X同源网页接口，不使用 Android 私有接口或付费 API。现支持最多20个账号加密保存、免重填Cookie切换和独立移除，旧单账号在下次写入时迁移；切换重建客户端并清理前一账号的页面与缓存。电视隐藏控件时左右键/长按连续快进快退、OK播放暂停，倍速与队列按钮放在32dp紧凑外栏；视频库接口已用本机保存会话实测，页面测试范围以验证记录为准。手机与 TV 的本次安装验收见[验证记录](docs/development/verification.md)。
 
 最低系统 API23（Android 6.0），compile37/target35；账号使用 Keystore 加密保存。现已在小米 MiTV-ANSP0（Android9/API28、armeabi-v7a）实测局域网网页填 Cookie、电视身份确认、加密保存、冷启动恢复、重新验证和本地退出；其他设备及版本未认证。测试 Cookie 未入仓。
 

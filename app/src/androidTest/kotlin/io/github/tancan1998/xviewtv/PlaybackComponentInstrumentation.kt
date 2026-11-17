@@ -26,6 +26,27 @@ class PlaybackComponentInstrumentation : Instrumentation() {
         val results = mutableListOf<String>()
         fun passed(name: String) { count++; results += "PASS $name"; sendStatus(0, Bundle().apply { putString("stream", "PASS $name\n") }) }
         try {
+            val store = "synthetic_multi_account_test"
+            val prefs = targetContext.getSharedPreferences(store, android.content.Context.MODE_PRIVATE)
+            prefs.edit().clear().commit()
+            try {
+                val vault = SessionVault(targetContext, store)
+                fun sample(id: String) = VerifiedSession(WebSession.parse("auth_token=synthetic-$id; ct0=csrf-$id"), WebAccount(id, "user$id", "Synthetic $id"))
+                vault.save(sample("1")); vault.save(sample("2"))
+                check(vault.accounts().map { it.id } == listOf("1", "2")); check(vault.load()?.account?.id == "2")
+                passed("multi account encrypted append and selected account")
+                vault.select("1"); check(vault.load()?.account?.id == "1")
+                check(SessionVault(targetContext, store).load()?.account?.id == "1")
+                passed("multi account switch survives vault recreation")
+                vault.save(sample("1")); check(vault.accounts().size == 2)
+                passed("same account updates without duplication")
+                vault.remove("2"); check(vault.load()?.account?.id == "1")
+                vault.save(sample("2")); vault.clear(); check(vault.load()?.account?.id == "1")
+                passed("logout preserves other saved accounts")
+            } finally {
+                prefs.edit().clear().commit()
+                java.security.KeyStore.getInstance("AndroidKeyStore").apply { load(null); deleteEntry("xview_test_$store") }
+            }
             lateinit var view: GesturePlayerView
             var speed = 1.5f
             val seeks = mutableListOf<Boolean>()

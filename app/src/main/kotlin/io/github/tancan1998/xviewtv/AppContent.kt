@@ -29,7 +29,7 @@ fun AppContent() {
         }
         if (account == null) DetailPage(ui(UiR.string.welcome), ui(UiR.string.welcome_subtitle)) {
             Text(ui(if (tv) UiR.string.welcome_tv else UiR.string.welcome_phone))
-        } else if (started) {
+        } else key(account.id) { if (started) {
             var client by remember(account, proxy) { mutableStateOf<XWebClient?>(null) }
             val owned = remember(account, proxy) { java.util.concurrent.atomic.AtomicReference<XWebClient?>(null) }
             val images = remember(account, proxy) { MediaImages(proxy) }
@@ -55,6 +55,6 @@ fun AppContent() {
             } ?: DetailPage(ui(UiR.string.app_title), ui(if (error) UiR.string.restore_failed else UiR.string.restoring)) {
                 if (!error) { LoadingIndicator(label = ui(UiR.string.restoring)); MediaSkeleton() }
             }
-        }
+        } }
     }
 }

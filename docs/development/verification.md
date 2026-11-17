@@ -1,6 +1,15 @@
 # Verification
 
-## 1.0.0 开源交付（2026-11-17，当前）
+## TV 输入、多账号与翻译修复（2026-11-17，开发分支）
+
+- 菜单键切换设置；返回优先回当前导航；刷新与导航同行，搜索框同卡片圆角且与导航/按钮同行。视频区隐藏按钮，左右/长按seek、OK播放暂停；外部32dp按钮栏，进度焦点采用独立深底外框。TV视频层改TextureView，等待最终GitHub APK实测。
+- 多账号AES-GCM加密文档保存最多20个账号与当前选择，兼容旧单账号，新增/同ID更新/切换/独立移除；切换重建账号客户端与页面。合成多账号设备测试源码已增加，尚未执行最终包设备测试；没有第二个真实账号验证证据。
+- Grok响应增加完整JSON/NDJSON/SSE聚合及四项回归，针对只显示首个译文字片段；最终真实接口与卡片布局需复测。
+- 早期临时兼容构建（旧缓存AGP8.9/Kotlin2.1/SDK35）42JUnit零失败、Lint0错误31警告。该结果不覆盖后续多账号与最新修订。用户随后明确只使用GitHub构建，此后不再启动本地Gradle。
+- 真实MiTV API28早期调试包覆盖安装保账号；刷新同行、卡片上下导航不误开设置、菜单显示设置、OK暂停及恢复、左右seek已观察。离线fixture只用于按键验证，无真实视频；真实首页重入78条。SurfaceView期间截图黑屏但Amlogic硬解/进度在运行，最终TextureView尚未验收。菜单关闭焦点恢复曾发现问题，已改叶子焦点记录待复测。
+- 当前源码结构/Node/LAN检查以最新日志为准；GitHub最终构建结果、最终电视验收将另行补充。未更新main或Release。
+
+## 1.0.0 开源交付（2026-11-17，历史基线）
 
 - 最终安装包由 [GitHub Actions #14](https://github.com/TanCan1998/xview-tv/actions/runs/44017925172) 构建，运行结论 success，源码提交 `683f759d24c90c980e930f7c9bec06b7a4a296e3`。最终公开初始提交随后只加入打码截图及交付文档，应用源码与此成功构建一致。
 - AGP9.5.1、Gradle9.9.1、Kotlin/Compose编译器2.4.21、协程core/test1.11.0、Compose BOM2026.09.00、TV Material1.1.0、OkHttp5.5.1、ZXing3.5.4、JSON20260814。compileSdk37.2/target35/min23，JDK17、Build Tools36.0.0。Android模块使用内置Kotlin；根据新Compose要求升级编译SDK并修复可观察Locale的两项Lint错误。

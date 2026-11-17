@@ -43,6 +43,20 @@ internal fun MediaViewer(post: Post, posts: List<Post>, config: ProxyConfig, bac
     val preferences = remember { AppPreferences(context) }
     val compact = LocalConfiguration.current.screenWidthDp < 600
     val short = LocalConfiguration.current.screenHeightDp < 480
+    val tv = isTelevision()
+    if (tv) {
+        val entry = queue.getOrNull(index)
+        val previous = PlaybackPolicy.adjacentVideo(queue, index, -1)
+        val next = PlaybackPolicy.adjacentVideo(queue, index, 1)
+        BackHandler { back() }
+        val attachment = entry?.media
+        if (entry != null && attachment != null && attachment !is Photo) key(entry.post.id, attachment.id, config) {
+            OpenSourcePlayer(attachment, config, preferences.seekBack(), preferences.seekForward(),
+                tvTitle = ui(UiR.string.player_queue, entry.post.author.username, index + 1, queue.size),
+                onBack = back, onPrevious = previous?.let { { index = it } }, onNext = next?.let { { index = it } })
+        }
+        return
+    }
     LaunchedEffect(post.id) { runCatching { exit.requestFocus() } }
     BackHandler { back() }
     val entry = queue.getOrNull(index)
@@ -70,7 +84,8 @@ internal fun MediaViewer(post: Post, posts: List<Post>, config: ProxyConfig, bac
 /** Native Media3 controls remain accessible for touch, D-pad, speed, tracks and seek. */
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-private fun OpenSourcePlayer(media: MediaAttachment, config: ProxyConfig, rewind: Int, forward: Int) {
+private fun OpenSourcePlayer(media: MediaAttachment, config: ProxyConfig, rewind: Int, forward: Int,
+    tvTitle: String = "", onBack: () -> Unit = {}, onPrevious: (() -> Unit)? = null, onNext: (() -> Unit)? = null) {
     val ui = rememberStrings()
     val context = LocalContext.current.applicationContext
     val tv = isTelevision()
@@ -124,6 +139,9 @@ private fun OpenSourcePlayer(media: MediaAttachment, config: ProxyConfig, rewind
             override fun onPlayerError(failure: PlaybackException) { error = failure.errorCodeName }
         }
         val analytics = object: AnalyticsListener {
+            override fun onRenderedFirstFrame(eventTime: AnalyticsListener.EventTime, output: Any, renderTimeMs: Long) {
+                if (BuildConfig.DEBUG) android.util.Log.d("XViewPlayback", "first_frame output=${output.javaClass.simpleName}")
+            }
             override fun onVideoDecoderInitialized(eventTime: AnalyticsListener.EventTime, decoderName: String, initializedTimestampMs: Long, initializationDurationMs: Long) {
                 decoder = decoderName
                 if (BuildConfig.DEBUG) android.util.Log.d("XViewPlayback", "decoder=$decoderName")
@@ -148,10 +166,14 @@ private fun OpenSourcePlayer(media: MediaAttachment, config: ProxyConfig, rewind
         player.setMediaItem(MediaItem.Builder().setUri(source.url).setMimeType(source.mimeType).build(), old)
         player.prepare(); player.playbackParameters = speed; player.playWhenReady = running; quality = value; error = ""
     }
-    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Box(Modifier.weight(1f).fillMaxWidth().background(XViewColors.scrim)) {
-            AndroidView(factory = { ctx -> GesturePlayerView(ctx).apply {
-                useController = true; controllerShowTimeoutMs = if (tv) 0 else 2500; controllerAutoShow = true
+    val surface: @Composable () -> Unit = {
+        Box(Modifier.fillMaxSize().background(XViewColors.scrim)) {
+            AndroidView(factory = { ctx ->
+                val videoView = if (tv) android.view.LayoutInflater.from(ctx).inflate(R.layout.tv_video_surface, null, false) as GesturePlayerView
+                    else GesturePlayerView(ctx)
+                videoView.apply {
+                useController = !tv; controllerShowTimeoutMs = 2500; controllerAutoShow = !tv
+                if (tv) { isFocusable = false; descendantFocusability = android.view.ViewGroup.FOCUS_BLOCK_DESCENDANTS }
                 setShowBuffering(androidx.media3.ui.PlayerView.SHOW_BUFFERING_WHEN_PLAYING)
                 setShowFastForwardButton(true); setShowRewindButton(true); setShowNextButton(false); setShowPreviousButton(false)
                 this.player = player
@@ -163,23 +185,38 @@ private fun OpenSourcePlayer(media: MediaAttachment, config: ProxyConfig, rewind
                     if (BuildConfig.DEBUG) android.util.Log.d("XViewPlayback", "seek offset=${if (right) seconds else -seconds} position=${player.currentPosition}")
                     feedback = currentUi(UiR.string.seek_feedback, if (right) "+" else "−", seconds); feedbackSerial++
                 }
-                view = this; showController()
+                view = this; if (!tv) showController()
             } }, modifier = Modifier.fillMaxSize(), update = { it.player = player },
                 onRelease = { it.finishBoost(); it.player = null; if (view === it) view = null })
             val notice = boost?.let { ui(UiR.string.boost, String.format(java.util.Locale.ROOT, "%.1f", it)) } ?: feedback
             if (notice.isNotEmpty()) Text(notice, Modifier.align(Alignment.TopCenter).padding(20.dp).background(XViewColors.scrim.copy(alpha = .75f)).padding(12.dp), color = XViewColors.text)
         }
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+    }
+    val qualityOptions: @Composable () -> Unit = {
             Text(ui(UiR.string.quality), style = MaterialTheme.typography.labelMedium)
-            hls?.let { source -> XButton(onClick = { changeQuality(source, -1) }) { Text(if (quality == -1) ui(UiR.string.selected_option, ui(UiR.string.auto_quality)) else ui(UiR.string.auto_quality)) } }
+            hls?.let { source ->
+                val label = if (quality == -1) ui(UiR.string.selected_option, ui(UiR.string.auto_quality)) else ui(UiR.string.auto_quality)
+                if (tv) TvControl(label, click = { changeQuality(source, -1) })
+                else XButton(onClick = { changeQuality(source, -1) }) { Text(label) }
+            }
             mp4.forEachIndexed { i, variant ->
-                XButton(onClick = { changeQuality(variant, i) }) {
                     val resolution = Regex("/(\\d{2,4})x(\\d{2,4})/").find(variant.url)?.groupValues?.get(2)
                     val label = resolution?.let { ui(UiR.string.quality_resolution, it) } ?: ui(UiR.string.quality_bitrate, (variant.bitrate ?: 0) / 1000)
-                    Text(if (quality == i) ui(UiR.string.selected_option, label) else label)
-                }
+                    val option = if (quality == i) ui(UiR.string.selected_option, label) else label
+                    if (tv) TvControl(option, click = { changeQuality(variant, i) })
+                    else XButton(onClick = { changeQuality(variant, i) }) { Text(option) }
             }
+    }
+    if (tv) {
+        Box(Modifier.fillMaxSize()) {
+            TvPlayerSurface(player, tvTitle, position, duration, rewind, forward, onBack, onPrevious, onNext, qualityOptions, surface)
+            if (error.isNotEmpty()) Text(ui(UiR.string.player_error, error), Modifier.align(Alignment.TopCenter).padding(20.dp), color = MaterialTheme.colorScheme.error)
         }
+        return
+    }
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Box(Modifier.weight(1f).fillMaxWidth()) { surface() }
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) { qualityOptions() }
         Text(ui(UiR.string.playback_status, formatTime(position), formatTime(duration)), style = MaterialTheme.typography.labelSmall)
         if (!tv && !short) Text(ui(UiR.string.hold_hint), style = MaterialTheme.typography.labelSmall)
         if (BuildConfig.DEBUG && !short) Text(if (decoder.isBlank()) ui(UiR.string.decoder_wait) else ui(UiR.string.decoder, decoder), style = MaterialTheme.typography.labelSmall)

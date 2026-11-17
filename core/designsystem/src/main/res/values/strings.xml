@@ -76,7 +76,7 @@
     <string name="welcome">Your world, in focus</string>
     <string name="welcome_subtitle">Sign in to explore videos from accounts you follow</string>
     <string name="welcome_phone">Open Settings at the top right, then paste your complete Cookie under Account &amp; sign in.</string>
-    <string name="welcome_tv">Press Up to reveal Settings, then open Account &amp; sign in to scan the QR code.</string>
+    <string name="welcome_tv">Press Menu to reveal Settings, then open Saved accounts to add an account with a QR code.</string>
     <string name="restoring">Restoring secure session…</string>
     <string name="restore_failed">Could not restore session. Sign in again in Settings.</string>
     <string name="following">Following / Moments worth watching</string>
@@ -92,7 +92,7 @@
     <string name="load_more">Load more</string>
     <string name="feed_end">You are all caught up</string>
     <string name="feed_error">Media unavailable. Check your connection and retry.</string>
-    <string name="nav_hint">Navigate with D-pad · Select to open · Up for settings</string>
+    <string name="nav_hint">Navigate with D-pad · Select to open · Menu toggles settings</string>
     <string name="view_media">View media</string>
     <string name="translated">EN</string>
     <string name="video_badge">▶ Video</string>
@@ -145,4 +145,15 @@
     <string name="player_queue">@%1$s · %2$d/%3$d</string>
     <string name="quality_resolution">%1$sp</string>
     <string name="quality_bitrate">%1$dkbps</string>
+    <string name="play_video">Play</string>
+    <string name="pause_video">Pause</string>
+    <string name="playback_speed">Speed %1$.2fx</string>
+    <string name="accounts_title">Saved accounts</string>
+    <string name="accounts_help">Save up to 20 accounts securely. Switching rebuilds the feed and clears the previous account cache.</string>
+    <string name="account_add">Add account</string>
+    <string name="account_current">Current · %1$s · @%2$s</string>
+    <string name="account_switch">Switch to %1$s · @%2$s</string>
+    <string name="account_remove">Remove</string>
+    <string name="account_remove_confirm">Remove @%1$s from this device? Other saved accounts remain available.</string>
+    <string name="account_switched">Account switched. Return home to load this account.</string>
 </resources>

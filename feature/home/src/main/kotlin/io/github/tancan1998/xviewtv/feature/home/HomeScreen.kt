@@ -25,7 +25,8 @@ import kotlinx.coroutines.flow.collectLatest
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun HomeScreen(repository: TimelineRepository, translator: PostTranslator, language: String, onMediaVisibility: (Boolean) -> Unit = {},
-    title: String? = null, header: @Composable () -> Unit = {},
+    title: String? = null, header: @Composable () -> Unit = {}, secondaryHeader: @Composable () -> Unit = {},
+    initialFocus: FocusRequester? = null,
     image: @Composable (String?, Modifier) -> Unit, media: @Composable (Post, List<Post>, () -> Unit) -> Unit) {
     val ui = rememberStrings()
     val tv = isTelevision()
@@ -57,7 +58,7 @@ fun HomeScreen(repository: TimelineRepository, translator: PostTranslator, langu
         catch (_: Exception) { message = ui(UiR.string.feed_error) }
         finally { loading = false }
     }
-    LaunchedEffect(repository) { if (tv) refreshFocus.requestFocus() }
+    LaunchedEffect(repository) { if (tv) (initialFocus ?: refreshFocus).requestFocus() }
     val visible = remember(posts) { FilterMedia()(posts, filter).map { post ->
         post.copy(media = post.media.filter { it is Video || it is AnimatedGif })
     } }
@@ -78,12 +79,15 @@ fun HomeScreen(repository: TimelineRepository, translator: PostTranslator, langu
                     Text(ui(UiR.string.app_title), style = MaterialTheme.typography.headlineMedium, color = XViewColors.text)
                     Text(title ?: ui(UiR.string.following), style = MaterialTheme.typography.labelMedium, color = Muted)
                 }
-                header()
-                if (tv) FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                XButton(onClick = { if (!loading) { reset = true; pageRequest++ } }, enabled = !loading,
-                    modifier = Modifier.focusRequester(refreshFocus),
-                    colors = ButtonDefaults.colors(containerColor = Panel, contentColor = Muted, focusedContainerColor = Accent, focusedContentColor = Canvas)) { Text(ui(UiR.string.refresh)) }
-                }
+                if (tv) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Box(Modifier.weight(1f)) { header() }
+                    XButton(onClick = { if (!loading) { reset = true; pageRequest++ } }, enabled = !loading,
+                        modifier = Modifier.focusRequester(refreshFocus),
+                        colors = ButtonDefaults.colors(containerColor = Panel, contentColor = Muted,
+                            focusedContainerColor = Accent, focusedContentColor = Canvas)) { Text(ui(UiR.string.refresh)) }
+                } else header()
+                secondaryHeader()
             }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(ui(UiR.string.latest), style = MaterialTheme.typography.titleMedium, color = XViewColors.text, modifier = Modifier.weight(1f))

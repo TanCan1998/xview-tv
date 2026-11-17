@@ -13,6 +13,11 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.focusGroup
+import androidx.compose.ui.input.key.*
+import androidx.compose.ui.focus.*
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -39,33 +44,72 @@ fun LibraryScreen(home: TimelineRepository, library: VideoLibrary, translator: P
     var draft by rememberSaveable { mutableStateOf("") }
     var submitted by rememberSaveable { mutableStateOf("") }
     val keyboard = LocalSoftwareKeyboardController.current
-    BackHandler(page != LibraryPage.HOME) { page = LibraryPage.HOME }
-    val navigation: @Composable () -> Unit = {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            LibraryPage.entries.forEach { destination ->
-                XButton(onClick = { page = destination }, colors = ButtonDefaults.colors(
-                    containerColor = if (page == destination) Accent.copy(alpha = .18f) else Panel,
-                    contentColor = if (page == destination) Accent else Muted,
-                    focusedContainerColor = Accent, focusedContentColor = Canvas)) {
-                    Text(ui(when(destination) {
-                        LibraryPage.HOME -> UiR.string.videos
-                        LibraryPage.SEARCH -> UiR.string.search
-                        LibraryPage.LIKES -> UiR.string.my_likes
-                        LibraryPage.FOLLOWING -> UiR.string.following_list
-                    }))
-                }
-            }
-        }
+    val focusManager = LocalFocusManager.current
+    val tv = isTelevision()
+    val navFocus = remember { LibraryPage.entries.associateWith { FocusRequester() } }
+    var focusedNav by remember { mutableStateOf<LibraryPage?>(null) }
+    val searchFieldFocus = remember { FocusRequester() }
+    val searchActionFocus = remember { FocusRequester() }
+    var searchSubmitSerial by remember { mutableIntStateOf(0) }
+    val mediaOverlay = LocalMediaOverlay.current
+    val stateHolder = rememberSaveableStateHolder()
+    BackHandler(tv && mediaOverlay?.value != true && focusedNav != page) { navFocus.getValue(page).requestFocus() }
+    BackHandler(page != LibraryPage.HOME && (!tv || focusedNav == page) && mediaOverlay?.value != true) { page = LibraryPage.HOME }
+    LaunchedEffect(page) {
+        if (tv) { withFrameNanos { }; navFocus.getValue(page).requestFocus() }
     }
+    LaunchedEffect(searchSubmitSerial) { if (tv && searchSubmitSerial > 0) { withFrameNanos { }; searchActionFocus.requestFocus() } }
     val search: @Composable () -> Unit = {
-        val submit = { if (draft.trim().isNotEmpty()) { submitted = draft.trim(); keyboard?.hide() }; Unit }
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        var fieldFocused by remember { mutableStateOf(false) }
+        val shape = XViewShapes.card
+        val submit = {
+            if (draft.trim().isNotEmpty()) {
+                keyboard?.hide(); focusManager.clearFocus()
+                submitted = draft.trim(); searchSubmitSerial++
+            }
+            Unit
+        }
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             BasicTextField(value = draft, onValueChange = { if (it.length <= 500 && it.none(Char::isISOControl)) draft = it },
                 singleLine = true, textStyle = TextStyle(color = XViewColors.text), cursorBrush = SolidColor(Accent),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search), keyboardActions = KeyboardActions(onSearch = { submit() }),
-                modifier = Modifier.weight(1f).border(1.dp, Muted).padding(14.dp),
+                modifier = Modifier.weight(1f).height(40.dp).focusRequester(searchFieldFocus)
+                    .onFocusChanged { fieldFocused = it.isFocused }.clip(shape).background(Panel)
+                    .border(if (fieldFocused) 2.dp else 1.dp, if (fieldFocused) Accent else Muted, shape)
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
                 decorationBox = { inner -> Box { if (draft.isEmpty()) Text(ui(UiR.string.search_hint), color = Muted); inner() } })
-            XButton(onClick = submit, enabled = draft.isNotBlank()) { Text(ui(UiR.string.search)) }
+            XButton(onClick = submit, enabled = draft.isNotBlank(), modifier = Modifier.focusRequester(searchActionFocus),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)) { Text(ui(UiR.string.search)) }
+        }
+    }
+    val navigation: @Composable () -> Unit = {
+        val navButtons: @Composable () -> Unit = {
+            Row(Modifier.focusGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                LibraryPage.entries.forEach { destination ->
+                    XButton(onClick = { page = destination }, modifier = Modifier.focusRequester(navFocus.getValue(destination))
+                        .onFocusChanged { if (it.isFocused) focusedNav = destination else if (focusedNav == destination) focusedNav = null },
+                        contentPadding = PaddingValues(horizontal = if (tv && page == LibraryPage.SEARCH) 10.dp else 16.dp, vertical = 10.dp),
+                        colors = ButtonDefaults.colors(containerColor = if (page == destination) Accent.copy(alpha = .18f) else Panel,
+                            contentColor = if (page == destination) Accent else Muted,
+                            focusedContainerColor = Accent, focusedContentColor = Canvas)) {
+                        Text(ui(when(destination) {
+                            LibraryPage.HOME -> UiR.string.videos
+                            LibraryPage.SEARCH -> UiR.string.search
+                            LibraryPage.LIKES -> UiR.string.my_likes
+                            LibraryPage.FOLLOWING -> UiR.string.following_list
+                        }))
+                    }
+                }
+            }
+        }
+        if (tv && page == LibraryPage.SEARCH) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            navButtons()
+            Box(Modifier.weight(1f)) { search() }
+        } else Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            navButtons()
+            if (page == LibraryPage.SEARCH) search()
         }
     }
     val title = ui(when(page) {
@@ -74,9 +118,10 @@ fun LibraryScreen(home: TimelineRepository, library: VideoLibrary, translator: P
         LibraryPage.LIKES -> UiR.string.liked_videos
         LibraryPage.FOLLOWING -> UiR.string.following_list
     })
+    stateHolder.SaveableStateProvider(page.name) {
     when {
         page == LibraryPage.FOLLOWING -> FollowingScreen(library, translator, language, onMediaVisibility, navigation, image, media)
-        page == LibraryPage.SEARCH && submitted.isEmpty() -> LibraryFrame(title, navigation) { search(); Text(ui(UiR.string.search_intro), color = Muted) }
+        page == LibraryPage.SEARCH && submitted.isEmpty() -> LibraryFrame(title, navigation) { Text(ui(UiR.string.search_intro), color = Muted) }
         else -> {
             val repository = remember(home, library, page, submitted) {
                 val destination = page
@@ -91,9 +136,11 @@ fun LibraryScreen(home: TimelineRepository, library: VideoLibrary, translator: P
             }
             key(repository) {
                 HomeScreen(repository, translator, language, onMediaVisibility,
-                    title = title, header = { navigation(); if (page == LibraryPage.SEARCH) search() }, image = image, media = media)
+                    title = title, header = navigation, initialFocus = if (page == LibraryPage.SEARCH && submitted.isNotEmpty()) searchActionFocus else navFocus.getValue(page),
+                    image = image, media = media)
             }
         }
+    }
     }
 }
 
@@ -141,7 +188,12 @@ private fun FollowingScreen(library: VideoLibrary, translator: PostTranslator, l
         catch (_: Exception) { message = ui(UiR.string.feed_error) }
         finally { loading = false }
     }
-    BackHandler(selected != null) { selected = null }
+    val authorFocus = remember { mutableMapOf<String, FocusRequester>() }
+    var selectedAuthorId by remember { mutableStateOf<String?>(null) }
+    BackHandler(selected != null) { selectedAuthorId = selected?.id; selected = null }
+    LaunchedEffect(selected) {
+        if (tv && selected == null) { withFrameNanos { }; selectedAuthorId?.let { authorFocus[it]?.requestFocus() } }
+    }
     val author = selected
     if (author != null) {
         val repository = remember(library, author.id) { object : TimelineRepository {
@@ -149,7 +201,7 @@ private fun FollowingScreen(library: VideoLibrary, translator: PostTranslator, l
         } }
         HomeScreen(repository, translator, language, onMediaVisibility,
             title = ui(UiR.string.author_videos, author.displayName), header = {
-                XButton(onClick = { selected = null }) { Text(ui(UiR.string.back_following)) }
+                XButton(onClick = { selectedAuthorId = selected?.id; selected = null }) { Text(ui(UiR.string.back_following)) }
             }, image = image, media = media)
     } else LibraryFrame(ui(UiR.string.following_list), navigation) {
         Text(ui(UiR.string.following_intro), color = Muted)
@@ -170,7 +222,9 @@ private fun FollowingScreen(library: VideoLibrary, translator: PostTranslator, l
                         Text(ui(UiR.string.videos))
                     }
                 }
-                if (tv) XButton(onClick = { selected = item }, modifier = Modifier.fillMaxWidth(),
+                val creatorFocus = remember(item.id) { FocusRequester() }
+                DisposableEffect(item.id) { authorFocus[item.id] = creatorFocus; onDispose { authorFocus.remove(item.id) } }
+                if (tv) XButton(onClick = { selectedAuthorId = item.id; selected = item }, modifier = Modifier.fillMaxWidth().focusRequester(creatorFocus),
                     shape = ButtonDefaults.shape(shape = creatorShape),
                     colors = ButtonDefaults.colors(containerColor = Panel, contentColor = XViewColors.text,
                         focusedContainerColor = XViewColors.focused, focusedContentColor = XViewColors.text)) { creatorContent() }
