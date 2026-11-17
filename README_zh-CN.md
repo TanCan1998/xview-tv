@@ -2,6 +2,8 @@
 
 # XView
 
+<p align="center"><img src="docs/assets/branding/preview.png" width="960" alt="XView 电视与手机组合预览，个人内容已打码"></p>
+
 [![Android CI](https://github.com/TanCan1998/xview-tv/actions/workflows/ci.yml/badge.svg)](https://github.com/TanCan1998/xview-tv/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/badge/version-1.0.0-72D7EA)](https://github.com/TanCan1998/xview-tv/releases/tag/v1.0.0)
 [![Android](https://img.shields.io/badge/Android-6.0%2B-72D7EA)](docs/compatibility/android-tv.md)

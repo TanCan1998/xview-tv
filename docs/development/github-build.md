@@ -16,7 +16,7 @@ Node is pinned to `26.13.1`, the latest stable release checked on that date. The
 
 ## Artifacts
 
-Push/workflow-dispatch builds produce the `xview-1.0.0` artifact containing `xview-1.0.0.apk` and `SHA256SUMS`. The `validation-reports` artifact contains test and Lint reports. Pull requests run the build and checks without access to signing credentials. Tagged release downloads are published from a successful GitHub build, never a locally compiled APK.
+Push/workflow-dispatch builds read `versionName`, `versionCode` and the actual APK path from Gradle's `output-metadata.json`. They produce `xview-<versionName>` containing `xview-<versionName>.apk` and `SHA256SUMS`; application versions are not duplicated in the workflow. Unsafe filename characters are normalized and split/missing APK metadata is rejected. The `validation-reports` artifact contains test and Lint reports. Pull requests run the build and checks without access to signing credentials. Tagged release downloads are published from a successful GitHub build, never a locally compiled APK.
 
 ## Signing and forks
 
