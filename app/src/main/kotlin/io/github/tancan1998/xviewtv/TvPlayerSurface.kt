@@ -119,7 +119,8 @@ internal fun TvPlayerSurface(player: Player, title: String, position: Long, dura
         } else false
     }) {
         surface()
-        if (!visible) Box(Modifier.fillMaxSize().focusRequester(hiddenFocus).focusable())
+        // Keep the hidden focus target tiny: no full-frame GPU layer over the SurfaceView.
+        if (!visible) Box(Modifier.size(1.dp).focusRequester(hiddenFocus).focusable())
         else Column(Modifier.fillMaxSize().background(XViewColors.scrim.copy(alpha = .72f)).padding(24.dp).focusGroup(),
             verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(title, style = MaterialTheme.typography.labelMedium, color = XViewColors.text)

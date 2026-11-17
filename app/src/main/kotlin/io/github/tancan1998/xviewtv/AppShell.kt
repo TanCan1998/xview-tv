@@ -52,6 +52,7 @@ internal fun AppShell(home: @Composable (WebAccount?, io.github.tancan1998.xview
     val pageState = rememberSaveableStateHolder()
     val homeFocus = remember { FocusRequester() }
     val homeRegistry = remember { TvHomeFocusRegistry() }
+    var menuReturnFocus by remember { mutableStateOf<FocusRequester?>(null) }
     val settingsFocus = remember { FocusRequester() }
     val pageFocus = remember { FocusRequester() }
     val go: (Destination) -> Unit = { destination = it; settingsVisible = false; message = "" }
@@ -65,7 +66,12 @@ internal fun AppShell(home: @Composable (WebAccount?, io.github.tancan1998.xview
         when {
             destination != Destination.HOME -> runCatching { pageFocus.requestFocus() }
             settingsVisible -> runCatching { settingsFocus.requestFocus() }
-            else -> runCatching { if (!homeRegistry.restore()) homeFocus.requestFocus() }
+            else -> {
+                val saved = menuReturnFocus
+                menuReturnFocus = null
+                val restored = saved?.let { runCatching { it.requestFocus() }.getOrDefault(false) } ?: homeRegistry.restore()
+                if (!restored) runCatching { homeFocus.requestFocus() }
+            }
         }
     }
     BackHandler(enabled = destination != Destination.HOME || settingsVisible) {
@@ -74,7 +80,7 @@ internal fun AppShell(home: @Composable (WebAccount?, io.github.tancan1998.xview
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).safeDrawingPadding().onPreviewKeyEvent { event ->
         if (tv && !mediaOverlay.value && destination == Destination.HOME && event.nativeKeyEvent.keyCode == android.view.KeyEvent.KEYCODE_MENU) {
             if (event.type == KeyEventType.KeyDown && event.nativeKeyEvent.repeatCount == 0) {
-                if (settingsVisible) dismissSettings() else settingsVisible = true
+                if (settingsVisible) dismissSettings() else { menuReturnFocus = homeRegistry.last; settingsVisible = true }
             }
             true
         } else if (tv && settingsVisible && !mediaOverlay.value && destination == Destination.HOME &&
