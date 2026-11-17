@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="xview_primary">#72D7EA</color>
+    <color name="xview_on_primary">#08212A</color>
+    <color name="xview_text">#EAF0F7</color>
+    <color name="xview_muted">#A4B3C8</color>
+    <color name="xview_secondary">#B7B4FF</color>
+    <color name="xview_error">#FFB4AB</color>
+    <color name="xview_background">#0B1018</color>
+    <color name="xview_surface">#151D2A</color>
+    <color name="xview_surface_focused">#1B283A</color>
+    <color name="xview_outline">#263145</color>
+    <color name="xview_placeholder">#202A3A</color>
+    <color name="xview_player_background">#080D14</color>
+    <color name="xview_scrim">#000000</color>
+    <color name="xview_transparent">#00000000</color>
+</resources>

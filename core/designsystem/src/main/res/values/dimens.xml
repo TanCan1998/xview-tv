@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="corner_small">6dp</dimen>
+    <dimen name="corner_medium">12dp</dimen>
+    <dimen name="corner_card">18dp</dimen>
+    <dimen name="corner_section">20dp</dimen>
+    <dimen name="corner_creator">16dp</dimen>
+    <dimen name="pull_refresh_threshold">72dp</dimen>
+</resources>
