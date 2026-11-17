@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'none'; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<title>XView · 连接电视</title>
+<link rel="stylesheet" href="./style.css">
+<script src="./vendor/forge-1.4.3.min.js"></script>
+<script type="module" src="./app.mjs"></script>
+</head>
+<body>
+<main>
+  <p class="brand">XVIEW / TV</p>
+  <h1>连接你的电视</h1>
+  <p class="intro">请先核对电视上的设备名称与校验码，再提交你的 X 会话。</p>
+  <section class="device" aria-label="配对设备">
+    <p id="device-name">等待有效的电视二维码</p>
+    <strong id="verification-code">——</strong>
+    <p id="expires">有效期 3 分钟</p>
+  </section>
+  <form id="pairing-form" autocomplete="off">
+    <fieldset id="fields" disabled>
+      <label for="cookie">完整 Cookie</label>
+      <p id="cookie-help" class="hint">从已登录 X 的浏览器复制完整 Cookie 字符串，粘贴到这里。网页会自动提取需要的字段。</p>
+      <div class="input-row">
+        <input id="cookie" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="32768" aria-describedby="cookie-help" required>
+        <button id="visibility" type="button" aria-controls="cookie" aria-pressed="false">显示</button>
+      </div>
+      <label class="confirmation"><input id="confirm" type="checkbox" required>我已核对电视上的设备名称和校验码</label>
+      <button id="submit" type="submit" class="primary">加密提交到电视</button>
+    </fieldset>
+  </form>
+  <p id="status" role="status" aria-live="polite">请扫描电视上的二维码打开此页。</p>
+  <p class="privacy">只在你信任的设备上操作。页面不保存 Cookie；电视会先验证账号。此页面属于 XView，不是 X 官方登录页。</p>
+</main>
+</body>
+</html>

@@ -1,0 +1,8 @@
+XView TV
+Copyright 2026 XView TV contributors
+
+Initial scaffold created with AI assistance from the supplied design document.
+No source code copied from the reference applications listed in that document.
+Gradle Wrapper is distributed under Apache-2.0; see licenses/third-party/README.md.
+The bundled node-forge browser build retains its upstream license and copyright
+in web/pairing/vendor/forge-LICENSE and is used under BSD-3-Clause.

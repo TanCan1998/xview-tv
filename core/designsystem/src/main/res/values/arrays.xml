@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="supported_language_tags" translatable="false">
+        <item>zh-Hans</item>
+        <item>en</item>
+    </string-array>
+    <string-array name="supported_language_labels" translatable="false">
+        <item>@string/chinese</item>
+        <item>@string/english</item>
+    </string-array>
+</resources>
