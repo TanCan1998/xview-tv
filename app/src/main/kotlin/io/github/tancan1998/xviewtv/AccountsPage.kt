@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.*
 import io.github.tancan1998.xviewtv.core.designsystem.*
 import io.github.tancan1998.xviewtv.core.designsystem.R as UiR
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -25,9 +26,28 @@ internal fun AccountsPage(account: WebAccount?, initialFocus: FocusRequester, on
     var removing by remember { mutableStateOf<WebAccount?>(null) }
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf("") }
-    suspend fun reload() { accounts = withContext(Dispatchers.IO) { vault.accounts() } }
-    LaunchedEffect(Unit) {
-        try { reload() } catch (_: Exception) { message = ui(UiR.string.vault_failed) }
+    var readFailed by remember { mutableStateOf(false) }
+    var canReset by remember { mutableStateOf(false) }
+    var confirmingReset by remember { mutableStateOf(false) }
+    var readAttempt by remember { mutableIntStateOf(0) }
+    suspend fun reload() {
+        val (saved, active) = withContext(Dispatchers.IO) { vault.accountList() }
+        accounts = saved
+        onAccount(active)
+    }
+    LaunchedEffect(readAttempt) {
+        busy = true
+        readFailed = false
+        canReset = false
+        message = ""
+        try {
+            reload()
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (failure: Exception) {
+            readFailed = true
+            canReset = failure is UnreadableSessionVault
+            message = ui(if (canReset) UiR.string.vault_unreadable else UiR.string.vault_unavailable)
+        } finally { busy = false }
     }
     DetailPage(ui(UiR.string.accounts_title), ui(UiR.string.accounts_help)) {
         XButton(onClick = add, enabled = !busy, modifier = Modifier.focusRequester(initialFocus)) { Text(ui(UiR.string.account_add)) }
@@ -49,7 +69,35 @@ internal fun AccountsPage(account: WebAccount?, initialFocus: FocusRequester, on
                 XButton(onClick = { removing = saved }, enabled = !busy) { Text(ui(UiR.string.account_remove)) }
             }
         }
-        if (accounts.isEmpty()) Text(ui(UiR.string.logged_out))
+        if (accounts.isEmpty() && !readFailed && !busy) Text(ui(UiR.string.logged_out))
+        if (readFailed) {
+            XButton(onClick = { confirmingReset = false; readAttempt++ }, enabled = !busy) {
+                Text(ui(UiR.string.vault_retry))
+            }
+            if (canReset && !confirmingReset) {
+                XButton(onClick = { confirmingReset = true }, enabled = !busy) {
+                    Text(ui(UiR.string.vault_reset))
+                }
+            }
+        }
+        if (confirmingReset) {
+            Text(ui(UiR.string.vault_reset_confirm))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                XButton(onClick = { confirmingReset = false }, enabled = !busy) { Text(ui(UiR.string.cancel)) }
+                XButton(onClick = {
+                    busy = true
+                    scope.launch {
+                        try {
+                            withContext(Dispatchers.IO) { vault.resetUnreadable() }
+                            confirmingReset = false
+                            readAttempt++
+                        } catch (cancelled: CancellationException) { throw cancelled }
+                        catch (_: Exception) { message = ui(UiR.string.vault_reset_failed) }
+                        finally { busy = false }
+                    }
+                }, enabled = !busy) { Text(ui(UiR.string.vault_reset)) }
+            }
+        }
         removing?.let { saved ->
             Text(ui(UiR.string.account_remove_confirm, saved.username))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {

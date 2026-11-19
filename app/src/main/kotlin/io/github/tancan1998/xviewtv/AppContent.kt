@@ -34,7 +34,9 @@ fun AppContent() {
             val owned = remember(account, proxy) { java.util.concurrent.atomic.AtomicReference<XWebClient?>(null) }
             val images = remember(account, proxy) { MediaImages(proxy) }
             var error by remember(account, proxy) { mutableStateOf(false) }
-            LaunchedEffect(account, proxy) {
+            var restoreAttempt by remember(account, proxy) { mutableIntStateOf(0) }
+            LaunchedEffect(account, proxy, restoreAttempt) {
+                error = false
                 try {
                     val saved = withContext(Dispatchers.IO) { SessionVault(context).load() }
                     check(saved?.account?.id == account.id)
@@ -53,7 +55,11 @@ fun AppContent() {
                     image = { url, modifier -> RemoteImage(images, url, modifier) },
                     media = { post, queue, back -> MediaViewer(post, queue, proxy, back) })
             } ?: DetailPage(ui(UiR.string.app_title), ui(if (error) UiR.string.restore_failed else UiR.string.restoring)) {
-                if (!error) { LoadingIndicator(label = ui(UiR.string.restoring)); MediaSkeleton() }
+                if (error) {
+                    XButton(onClick = { restoreAttempt++ }) { Text(ui(UiR.string.vault_retry)) }
+                } else {
+                    LoadingIndicator(label = ui(UiR.string.restoring)); MediaSkeleton()
+                }
             }
         } }
     }

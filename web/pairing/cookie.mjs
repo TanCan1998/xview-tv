@@ -28,11 +28,12 @@ export function parseCookie(input) {
     if (index < 1) throw new CookieInputError('format');
     const name = part.slice(0, index).trim();
     const value = part.slice(index + 1).trim();
-    if (!TOKEN.test(name) || !VALUE.test(value) || ATTRIBUTES.has(name.toLowerCase())) {
+    if (!TOKEN.test(name) || ATTRIBUTES.has(name.toLowerCase())) {
       throw new CookieInputError('format');
     }
     if (!REQUIRED.has(name)) continue;
     if (!value) throw new CookieInputError('empty', name);
+    if (!VALUE.test(value)) throw new CookieInputError('format', name);
     if (session[name] !== undefined && session[name] !== value) throw new CookieInputError('duplicate', name);
     session[name] = value;
   }
