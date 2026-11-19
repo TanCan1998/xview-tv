@@ -5,7 +5,7 @@
 <p align="center"><img src="docs/assets/branding/preview.png" width="960" alt="XView 电视与手机组合预览，个人内容已打码"></p>
 
 [![Android CI](https://github.com/TanCan1998/xview-tv/actions/workflows/ci.yml/badge.svg)](https://github.com/TanCan1998/xview-tv/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.0.0-72D7EA)](https://github.com/TanCan1998/xview-tv/releases/tag/v1.0.0)
+[![Version](https://img.shields.io/badge/version-1.0.1-72D7EA)](https://github.com/TanCan1998/xview-tv/releases/tag/v1.0.1)
 [![Android](https://img.shields.io/badge/Android-6.0%2B-72D7EA)](docs/compatibility/android-tv.md)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
@@ -57,13 +57,13 @@ node web/pairing/tests/lan-node.mjs
 sh ./gradlew :core:network:test :core:domain:test :core:provider:test :provider:demo:test :app:lintDebug :app:assembleDebug
 ```
 
-Debug APK：`app/build/outputs/apk/debug/app-debug.apk`，不是发布签名包。小体积本地验收包执行`sh ./gradlew :app:assembleOptimized :app:lintOptimized`，输出`app/build/outputs/apk/optimized/app-optimized.apk`：R8代码裁剪/混淆与资源压缩，非debuggable、保留中英文与全部ABI，使用本机debug证书以覆盖现有测试安装。1.0.0 的最终 APK 由 GitHub Actions 构建并以仓库加密 Secret 中的现有签名重新签署；源代码不包含签名密钥。Release 也启用压缩，独立构建者应配置自己的签名。挂载目录请用 `sh ./gradlew`；通过 `ANDROID_HOME` 配置 SDK。本机 ARM64 Alpine 离线入口与实际测试证据见[验证记录](docs/development/verification.md)。
+Debug APK：`app/build/outputs/apk/debug/app-debug.apk`，不是发布签名包。小体积本地验收包执行`sh ./gradlew :app:assembleOptimized :app:lintOptimized`，输出`app/build/outputs/apk/optimized/app-optimized.apk`：R8代码裁剪/混淆与资源压缩，非debuggable、保留中英文与全部ABI，使用本机debug证书以覆盖现有测试安装。正式发布的 APK 由 GitHub Actions 构建并以仓库加密 Secret 中的现有签名重新签署；源代码不包含签名密钥。Release 也启用压缩，独立构建者应配置自己的签名。挂载目录请用 `sh ./gradlew`；通过 `ANDROID_HOME` 配置 SDK。本机 ARM64 Alpine 离线入口与实际测试证据见[验证记录](docs/development/verification.md)。
 
 `provider:demo` 仅保留确定性测试夹具，不依赖于正式 APK；`feature:home` 已接入真实媒体首页。当前9个模块的边界见[架构](docs/architecture/overview.md)。
 
 [路线图](docs/development/roadmap.md) · [兼容矩阵](docs/compatibility/android-tv.md) · [隐私](PRIVACY.md) · [贡献指南](CONTRIBUTING.md)
 
-[GitHub 源码](https://github.com/TanCan1998/xview-tv) · [下载 1.0.0](https://github.com/TanCan1998/xview-tv/releases/tag/v1.0.0)。Apache-2.0，第三方组件许可见[来源记录](licenses/third-party/README.md)。
+[GitHub 源码](https://github.com/TanCan1998/xview-tv) · [下载 1.0.1](https://github.com/TanCan1998/xview-tv/releases/tag/v1.0.1)。Apache-2.0，第三方组件许可见[来源记录](licenses/third-party/README.md)。
 
 ## 社区链接
 

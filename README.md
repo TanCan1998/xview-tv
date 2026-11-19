@@ -5,7 +5,7 @@
 <p align="center"><img src="docs/assets/branding/preview.png" width="960" alt="XView preview on Android TV and phone; personal content redacted"></p>
 
 [![Android CI](https://github.com/TanCan1998/xview-tv/actions/workflows/ci.yml/badge.svg)](https://github.com/TanCan1998/xview-tv/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.0.0-72D7EA)](https://github.com/TanCan1998/xview-tv/releases/tag/v1.0.0)
+[![Version](https://img.shields.io/badge/version-1.0.1-72D7EA)](https://github.com/TanCan1998/xview-tv/releases/tag/v1.0.1)
 [![Android](https://img.shields.io/badge/Android-6.0%2B-72D7EA)](docs/compatibility/android-tv.md)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
@@ -42,9 +42,9 @@ node web/pairing/tests/lan-node.mjs
 sh ./gradlew :core:network:test :core:domain:test :core:provider:test :provider:demo:test :app:lintDebug :app:assembleDebug
 ```
 
-Debug output: `app/build/outputs/apk/debug/app-debug.apk`. Build the compact local review artifact with `sh ./gradlew :app:assembleOptimized :app:lintOptimized`: `app/build/outputs/apk/optimized/app-optimized.apk`. It uses R8 and resource shrinking, is not debuggable, keeps both languages and all ABIs, and uses the existing local debug certificate for in-place testing. The final 1.0.0 APK is built by GitHub Actions and re-signed with the existing certificate held in encrypted repository Secrets; signing keys are not in source control. Release also shrinks; independent builders should configure their own signing policy. Configure `ANDROID_HOME`; use `sh ./gradlew` on shared mounts. The verified ARM64 Alpine offline runner is documented in [verification](docs/development/verification.md).
+Debug output: `app/build/outputs/apk/debug/app-debug.apk`. Build the compact local review artifact with `sh ./gradlew :app:assembleOptimized :app:lintOptimized`: `app/build/outputs/apk/optimized/app-optimized.apk`. It uses R8 and resource shrinking, is not debuggable, keeps both languages and all ABIs, and uses the existing local debug certificate for in-place testing. The published APK is built by GitHub Actions and re-signed with the existing certificate held in encrypted repository Secrets; signing keys are not in source control. Release also shrinks; independent builders should configure their own signing policy. Configure `ANDROID_HOME`; use `sh ./gradlew` on shared mounts. The verified ARM64 Alpine offline runner is documented in [verification](docs/development/verification.md).
 
-The nine-module [architecture](docs/architecture/overview.md) packages `feature:home` as the real media UI; `provider:demo` remains deterministic test fixtures only and is not packaged. No real credentials, signing keys or personal response bodies are committed. [Source](https://github.com/TanCan1998/xview-tv) · [Download 1.0.0](https://github.com/TanCan1998/xview-tv/releases/tag/v1.0.0). Apache-2.0; [third-party licenses](licenses/third-party/README.md).
+The nine-module [architecture](docs/architecture/overview.md) packages `feature:home` as the real media UI; `provider:demo` remains deterministic test fixtures only and is not packaged. No real credentials, signing keys or personal response bodies are committed. [Source](https://github.com/TanCan1998/xview-tv) · [Download 1.0.1](https://github.com/TanCan1998/xview-tv/releases/tag/v1.0.1). Apache-2.0; [third-party licenses](licenses/third-party/README.md).
 
 ## Community
 

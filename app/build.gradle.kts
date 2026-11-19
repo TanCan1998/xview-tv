@@ -6,8 +6,8 @@ android {
     namespace = "io.github.tancan1998.xviewtv"
     defaultConfig {
         applicationId = "io.github.tancan1998.xviewtv"
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.1"
         testInstrumentationRunner = "io.github.tancan1998.xviewtv.PlaybackComponentInstrumentation"
     }
     sourceSets.getByName("main").assets.directories.add("../web/pairing")

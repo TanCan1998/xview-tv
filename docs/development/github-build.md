@@ -1,6 +1,6 @@
 # GitHub build and signing
 
-XView 1.0.0 uses AGP 9.5.1, Gradle 9.9.1, JDK 17, Kotlin 2.4.21, compile SDK 37.2 / target SDK 35, Build Tools 36.0.0 and minSdk 23. Android convention plugins use AGP built-in Kotlin; pure JVM modules continue using the Kotlin JVM plugin. Compose compiler and JVM Kotlin share version 2.4.21. Coroutines core and test are both pinned to 1.11.0, matching Dependabot PR #1; the application declares coroutines directly to avoid an older transitive compile API.
+XView uses AGP 9.5.1, Gradle 9.9.1, JDK 17, Kotlin 2.4.21, compile SDK 37.2 / target SDK 35, Build Tools 36.0.0 and minSdk 23. Android convention plugins use AGP built-in Kotlin; pure JVM modules continue using the Kotlin JVM plugin. Compose compiler and JVM Kotlin share version 2.4.21. Coroutines core and test are both pinned to 1.11.0, matching Dependabot PR #1; the application declares coroutines directly to avoid an older transitive compile API.
 
 The [CI workflow](../../.github/workflows/ci.yml) runs structure checks, synthetic pairing tests, JVM tests, Android Lint and the R8/resource-shrunk optimized build. All Actions are pinned to full commit SHAs. Official stable versions checked on 2026-11-17:
 

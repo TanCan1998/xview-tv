@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1 — 2026-11-19
+
+- Accept complete browser Cookies containing JSON, quoted values and duplicate optional fields in both phone Settings and TV QR pairing. Only `auth_token` and `ct0` are used for login.
+- Provide a retry when secure storage is unavailable. When saved accounts cannot be decrypted, account management offers a reset that requires confirmation before removing local accounts.
+
 ## 1.0.0 — 2026-11-17
 
 - Introduce the selected Play X icon, adaptive/legacy launchers, monochrome layer and matching TV banner.
