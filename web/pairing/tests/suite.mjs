@@ -18,6 +18,10 @@ export async function runTests() {
     assert(JSON.stringify(result) === '{"auth_token":"synthetic-token","ct0":"synthetic-csrf"}');
     assert(Object.isFrozen(result));
   });
+  await test('browser JSON, quoted and duplicate extras are discarded', () => {
+    const result = parseCookie('__cuid=one; __cuid=one; g_state={"i_l":0,"i_e":{"flag":24}}; auth_token=synthetic; ct0=csrf; __cf_bm=one; __cf_bm=two; personalization_id="v1_sample=="');
+    assert(result.auth_token === 'synthetic' && result.ct0 === 'csrf' && Object.keys(result).length === 2);
+  });
   await test('prefix whitespace equals and trailing separator', () => {
     const result = parseCookie('  Cookie: theme = dark; auth_token = test==; ct0 = csrf=;  ');
     assert(result.auth_token === 'test==' && result.ct0 === 'csrf=');

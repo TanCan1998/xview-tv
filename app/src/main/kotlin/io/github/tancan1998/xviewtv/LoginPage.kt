@@ -156,7 +156,9 @@ internal fun LoginPage(config: ProxyConfig, initialFocus: FocusRequester, accoun
                         try {
                             withContext(Dispatchers.IO) { vault.save(verified) }
                             onAccount(verified.account); candidate = null; message = ui(UiR.string.login_saved)
-                        } catch (_: Exception) { message = ui(UiR.string.vault_failed) }
+                        } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+                        catch (_: UnreadableSessionVault) { message = ui(UiR.string.vault_unreadable_login) }
+                        catch (_: Exception) { message = ui(UiR.string.vault_failed) }
                         finally { busy = false }
                     }
                 }, enabled = !busy) { Text(ui(UiR.string.confirm_login)) }

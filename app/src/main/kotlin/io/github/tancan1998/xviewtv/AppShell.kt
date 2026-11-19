@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import io.github.tancan1998.xviewtv.core.designsystem.*
 import io.github.tancan1998.xviewtv.core.designsystem.R as UiR
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -37,8 +38,14 @@ internal fun AppShell(home: @Composable (WebAccount?, io.github.tancan1998.xview
     val preferences = remember { AppPreferences(context) }
     var account by remember { mutableStateOf<WebAccount?>(null) }
     var restoring by remember { mutableStateOf(true) }
-    LaunchedEffect(Unit) {
-        try { account = withContext(Dispatchers.IO) { runCatching { SessionVault(context).load()?.account }.getOrNull() } }
+    var restoreFailed by remember { mutableStateOf(false) }
+    var restoreAttempt by remember { mutableIntStateOf(0) }
+    LaunchedEffect(restoreAttempt) {
+        restoring = true
+        restoreFailed = false
+        try { account = withContext(Dispatchers.IO) { SessionVault(context).load()?.account } }
+        catch (cancelled: CancellationException) { throw cancelled }
+        catch (_: Exception) { restoreFailed = true }
         finally { restoring = false }
     }
     var destination by rememberSaveable { mutableStateOf(Destination.HOME) }
@@ -96,16 +103,22 @@ internal fun AppShell(home: @Composable (WebAccount?, io.github.tancan1998.xview
                     Box(Modifier.fillMaxSize().focusRequester(homeFocus).focusGroup()) {
                         if (restoring) DetailPage(ui(UiR.string.app_title), ui(UiR.string.restoring)) {
                             LoadingIndicator(label = ui(UiR.string.restoring)); MediaSkeleton()
+                        } else if (restoreFailed) {
+                            DetailPage(ui(UiR.string.app_title), ui(UiR.string.vault_unavailable)) {
+                                XButton(onClick = { restoreAttempt++ }) { Text(ui(UiR.string.vault_retry)) }
+                            }
                         } else home(account, proxy)
                     }
                 }
                 Destination.ACCOUNTS -> AccountsPage(account, pageFocus, onAccount = {
                     if (it?.id != account?.id) { homeRegistry.last = null; pageState.removeState(Destination.HOME.name) }
                     account = it
+                    restoreFailed = false
                 }, add = { go(Destination.LOGIN) }, back = back)
                 Destination.LOGIN -> LoginPage(proxy, pageFocus, account, onAccount = {
                     if (it?.id != account?.id) { homeRegistry.last = null; pageState.removeState(Destination.HOME.name) }
                     account = it
+                    restoreFailed = false
                 }, back = back)
                 Destination.PROXY -> ProxyPage(proxy, initialFocus = pageFocus, onSave = { candidate ->
                     scope.launch {

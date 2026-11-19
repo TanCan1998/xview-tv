@@ -81,10 +81,11 @@ class WebSession private constructor(val authToken: String, val csrf: String) {
                 require(index > 0) { "Cookie 格式无效。" }
                 val name = part.substring(0, index).trim()
                 val value = part.substring(index + 1).trim()
-                require(name.matches(Regex("[!#$%&'*+.^_`|~0-9A-Za-z-]+")) && value.all { it.code in 33..126 && it !in "\";,\\" }) { "Cookie 格式无效。" }
-                require(name.lowercase() !in setOf("domain", "path", "expires", "max-age", "secure", "httponly", "samesite")) { "请粘贴请求 Cookie，不是 Set-Cookie。" }
-                if (name !in setOf("auth_token", "ct0")) continue
+                require(name.matches(Regex("[!#$%&'*+.^_`|~0-9A-Za-z-]+"))) { "Cookie 格式无效。" }
+                require(name.lowercase() !in setOf("domain", "path", "expires", "max-age", "secure", "httponly", "samesite", "partitioned")) { "请粘贴请求 Cookie，不是 Set-Cookie。" }
+                if (name != "auth_token" && name != "ct0") continue
                 require(value.isNotEmpty()) { "Cookie 缺少必需字段。" }
+                require(value.all { it.code in 33..126 && it !in "\";,\\" }) { "Cookie 格式无效。" }
                 require(values[name] == null || values[name] == value) { "Cookie 必需字段存在冲突。" }
                 values[name] = value
             }

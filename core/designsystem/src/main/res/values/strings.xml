@@ -42,6 +42,13 @@
     <string name="verified">Identity verified. Check the account before confirming.</string>
     <string name="login_saved">Signed in. Session saved with encryption.</string>
     <string name="vault_failed">Secure storage unavailable. Account was not saved.</string>
+    <string name="vault_unavailable">Could not read secure storage. Unlock your device and retry.</string>
+    <string name="vault_unreadable">Saved accounts could not be decrypted. Retry or reset account storage.</string>
+    <string name="vault_unreadable_login">Could not read saved accounts. Return to Accounts to retry or reset account storage and sign in again.</string>
+    <string name="vault_retry">Retry reading</string>
+    <string name="vault_reset">Reset account storage</string>
+    <string name="vault_reset_confirm">This removes all accounts saved on this device. You will need to sign in again.</string>
+    <string name="vault_reset_failed">Could not reset account storage. Try again later.</string>
     <string name="login_failed">Account verification failed. Existing account unchanged.</string>
     <string name="cancelled">Cancelled. Existing account unchanged.</string>
     <string name="reverify">Verify session again</string>
